@@ -7,7 +7,13 @@
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SabberStone\core-extensions\SabberStoneCoreAi\SabberStoneCoreAi.csproj" />
-    <ProjectReference Include="..\SabberStone\SabberStoneCore\SabberStoneCore.csproj" />
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="external_projects\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="external_projects\SabberStone\core-extensions\SabberStoneCoreAi\SabberStoneCoreAi.csproj" />
+    <ProjectReference Include="external_projects\SabberStone\SabberStoneCore\SabberStoneCore.csproj" />
   </ItemGroup>
 </Project>
