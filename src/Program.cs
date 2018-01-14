@@ -16,8 +16,8 @@ namespace HSAI
 	{
 		private static void Main(string[] args)
 		{
-			PlayGame(new Expectiminimax(Beginner.Mage, Strategy.Control), new Expectiminimax(Beginner.Mage, Strategy.Control), 100);
-		}
+            PlayGame(new Expectiminimax(Beginner.Druid, Strategy.Control), new Expectiminimax(Beginner.Druid, Strategy.Control), 100);
+        }
 		private static void PlayGame(IAgent agent1, IAgent agent2, int turnLimit)
 		{
 			Console.WriteLine("Starting game...");
@@ -29,10 +29,10 @@ namespace HSAI
 					StartPlayer = 1,
 					Player1Name = "Foo",
 					Player1HeroClass = agent1.Deck.Class(),
-					Player1Deck = agent1.Deck.Deck(),
+                    Player1Deck = agent1.Deck.Cards(),
 					Player2Name = "Bar",
 					Player2HeroClass = agent2.Deck.Class(),
-					Player2Deck = agent2.Deck.Deck(),
+					Player2Deck = agent2.Deck.Cards(),
 					FillDecks = false,
 					Shuffle = true,
 					SkipMulligan = false

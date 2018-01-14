@@ -4,7 +4,7 @@ namespace HSAI.Agent
 {
     public class RandomAgent: HSAI.Agent.Agent
 	{
-		public RandomAgent(IDeck deck) : base(deck)
+        public RandomAgent(string deckstring) : base(deckstring)
 		{
 		}
 	}

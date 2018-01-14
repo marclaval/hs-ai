@@ -21,9 +21,9 @@ namespace HSAI.Agent
 		public IDeck Deck { get; }
 		private Random Rnd = new Random();
 
-		public Agent(IDeck _deck)
+		public Agent(string deckstring)
 		{
-			Deck = _deck;
+            Deck = DeckBuilder.DeserializeDeckString(deckstring);;
 		}
 
 		public virtual List<int> Mulligan(List<IPlayable> choices)

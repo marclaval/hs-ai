@@ -16,7 +16,7 @@ namespace HSAI.Agent
 	{
 		private IScore _score;
 
-		public Expectiminimax(IDeck deck, Strategy strategy) : base(deck)
+        public Expectiminimax(string deckstring, Strategy strategy) : base(deckstring)
 		{
 			switch(strategy)
 			{
