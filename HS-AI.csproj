@@ -8,6 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
+    <Folder Include="src\PowerLog\HearthWatcher\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="external_projects\**" />
