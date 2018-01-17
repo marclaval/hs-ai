@@ -1,7 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netstandard1.6</TargetFramework>
+    <StartupObject></StartupObject>
+    <ApplicationIcon />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <PlatformTarget>x64</PlatformTarget>
@@ -13,7 +15,9 @@
     <Compile Remove="external_projects\**" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\external_projects\SabberStone\core-extensions\SabberStoneCoreAi\SabberStoneCoreAi.csproj" />
+    <PackageReference Include="System.Threading.ThreadPool" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\external_projects\SabberStone\SabberStoneCore\SabberStoneCore.csproj" />
   </ItemGroup>
 </Project>
