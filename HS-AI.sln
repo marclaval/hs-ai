@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HS-AI", "HS-AI.csproj", "{9A42B9BA-CF08-4336-AE06-452909848282}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExternalProjects", "ExternalProjects", "{57BE72A6-1A19-4674-9403-F4D23AA081FB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SabberStoneCore", "external_projects\SabberStone\SabberStoneCore\SabberStoneCore.csproj", "{7107842D-83B7-481C-B95E-573AB2573DD7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SabberStoneCoreAi", "external_projects\SabberStone\core-extensions\SabberStoneCoreAi\SabberStoneCoreAi.csproj", "{FD1FD8F7-4BB2-48DD-B180-F7002FB44CED}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HS-AI", "HS-AI\HS-AI.csproj", "{AEBCAA4E-6F7B-4FAD-BFF7-28EDE2D61D72}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,14 +19,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9A42B9BA-CF08-4336-AE06-452909848282}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9A42B9BA-CF08-4336-AE06-452909848282}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9A42B9BA-CF08-4336-AE06-452909848282}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{9A42B9BA-CF08-4336-AE06-452909848282}.Debug|x86.Build.0 = Debug|Any CPU
-		{9A42B9BA-CF08-4336-AE06-452909848282}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9A42B9BA-CF08-4336-AE06-452909848282}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9A42B9BA-CF08-4336-AE06-452909848282}.Release|x86.ActiveCfg = Release|Any CPU
-		{9A42B9BA-CF08-4336-AE06-452909848282}.Release|x86.Build.0 = Release|Any CPU
 		{7107842D-83B7-481C-B95E-573AB2573DD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7107842D-83B7-481C-B95E-573AB2573DD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7107842D-83B7-481C-B95E-573AB2573DD7}.Debug|x86.ActiveCfg = Debug|Any CPU
@@ -43,6 +35,14 @@ Global
 		{FD1FD8F7-4BB2-48DD-B180-F7002FB44CED}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FD1FD8F7-4BB2-48DD-B180-F7002FB44CED}.Release|x86.ActiveCfg = Release|Any CPU
 		{FD1FD8F7-4BB2-48DD-B180-F7002FB44CED}.Release|x86.Build.0 = Release|Any CPU
+		{AEBCAA4E-6F7B-4FAD-BFF7-28EDE2D61D72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEBCAA4E-6F7B-4FAD-BFF7-28EDE2D61D72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEBCAA4E-6F7B-4FAD-BFF7-28EDE2D61D72}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AEBCAA4E-6F7B-4FAD-BFF7-28EDE2D61D72}.Debug|x86.Build.0 = Debug|Any CPU
+		{AEBCAA4E-6F7B-4FAD-BFF7-28EDE2D61D72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEBCAA4E-6F7B-4FAD-BFF7-28EDE2D61D72}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEBCAA4E-6F7B-4FAD-BFF7-28EDE2D61D72}.Release|x86.ActiveCfg = Release|Any CPU
+		{AEBCAA4E-6F7B-4FAD-BFF7-28EDE2D61D72}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
