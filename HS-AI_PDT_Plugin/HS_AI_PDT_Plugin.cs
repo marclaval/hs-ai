@@ -8,6 +8,8 @@ using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Plugins;
+using SabberStoneCore.Config;
+using SabberStoneCore.Model;
 
 namespace HS_AI_PDT_Plugin
 {
@@ -23,10 +25,29 @@ namespace HS_AI_PDT_Plugin
         internal static void TurnStart(ActivePlayer player)
         {
             GameV2 Game = Core.Game;
+            Console.WriteLine("HS-AI: TurnStart!");
         }
 
         internal static void GameStart()
         {
+            var game = new Game(
+                new GameConfig()
+                {
+                    StartPlayer = 1,
+                    Player1Name = "Foo",
+                    Player1HeroClass = SabberStoneCore.Enums.CardClass.MAGE,
+                    Player1Deck = new List<SabberStoneCore.Model.Card>(),
+                    Player2Name = "Bar",
+                    Player2HeroClass = SabberStoneCore.Enums.CardClass.DRUID,
+                    Player2Deck = new List<SabberStoneCore.Model.Card>(),
+                    FillDecks = false,
+                    Shuffle = true,
+                    SkipMulligan = false
+                });
+            game.StartGame();
+            game.ToBeDestroyed = true;
+            Console.WriteLine("HS-AI: Game created!");
+            //System.Diagnostics.Debugger.Break();
         }
 
         public void OnLoad()

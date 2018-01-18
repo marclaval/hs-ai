@@ -48,6 +48,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\external_projects\SabberStone\SabberStoneCore\SabberStoneCore.csproj">
+      <Project>{7107842d-83b7-481c-b95e-573ab2573dd7}</Project>
+      <Name>SabberStoneCore</Name>
+    </ProjectReference>
     <ProjectReference Include="..\HS-AI\HS-AI.csproj">
       <Project>{aebcaa4e-6f7b-4fad-bff7-28ede2d61d72}</Project>
       <Name>HS-AI</Name>
