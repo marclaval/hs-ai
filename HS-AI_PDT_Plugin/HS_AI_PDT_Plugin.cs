@@ -15,6 +15,8 @@ namespace HS_AI_PDT_Plugin
 {
     public class HS_AI_PDT_Plugin: IPlugin
     {
+        private Messenger _messenger;
+
         public string Name => "HS-AI";
         public string Description => "A HDT plugin for HS-AI";
         public string ButtonText => "HS-AI";
@@ -22,14 +24,17 @@ namespace HS_AI_PDT_Plugin
         public Version Version => new Version(0, 0, 1);
         public MenuItem MenuItem => null;
 
-        internal static void TurnStart(ActivePlayer player)
+        internal void TurnStart(ActivePlayer player)
         {
             GameV2 Game = Core.Game;
-            Console.WriteLine("HS-AI: TurnStart!");
+            var messages = new List<string>();
+            messages.Add("HS-AI: TurnStart: " + Game.GetTurnNumber() + "_" + player.ToString());
+            _messenger.Update(messages);
         }
 
-        internal static void GameStart()
+        internal void GameStart()
         {
+            _messenger.Show();
             var game = new Game(
                 new GameConfig()
                 {
@@ -46,19 +51,32 @@ namespace HS_AI_PDT_Plugin
                 });
             game.StartGame();
             game.ToBeDestroyed = true;
-            Console.WriteLine("HS-AI: Game created!");
+            var messages = new List<string>();
+            messages.Add("HS-AI: Game created!");
+            _messenger.Update(messages);
             //System.Diagnostics.Debugger.Break();
+        }
+
+        internal void InMenu()
+        {
+            _messenger.Hide();
         }
 
         public void OnLoad()
         {
+            _messenger = new Messenger();
+            Core.OverlayCanvas.Children.Add(_messenger);
+            if (Core.Game.IsInMenu)
+                _messenger.Hide();
             //when it's loaded upon each restart/turned on by the user
-            GameEvents.OnGameStart.Add(HS_AI_PDT_Plugin.GameStart);
-            GameEvents.OnTurnStart.Add(HS_AI_PDT_Plugin.TurnStart);
+            GameEvents.OnGameStart.Add(GameStart);
+            GameEvents.OnTurnStart.Add(TurnStart);
+            GameEvents.OnInMenu.Add(InMenu);
         }
 
         public void OnUnload()
         {
+            Core.OverlayCanvas.Children.Remove(_messenger);
             // handle unloading here. HDT does not literally unload the assembly
         }
 
