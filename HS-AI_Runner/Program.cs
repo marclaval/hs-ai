@@ -42,8 +42,26 @@ namespace HS_AI_Runner
             game.StartGame();
 
             // Mulligan phase
-            List<int> mulligan1 = agent1.Mulligan(game.Player1.Choice.Choices.Select(p => game.IdEntityDic[p]).ToList());
-            List<int> mulligan2 = agent2.Mulligan(game.Player2.Choice.Choices.Select(p => game.IdEntityDic[p]).ToList());
+            List<Card> mulliganCard1 = agent1.Mulligan(game.Player1.Choice.Choices.Select(p => game.IdEntityDic[p].Card).ToList());
+            List<Card> mulliganCard2 = agent2.Mulligan(game.Player2.Choice.Choices.Select(p => game.IdEntityDic[p].Card).ToList());
+
+            List<int> mulligan1 = new List<int>();
+            game.Player1.Choice.Choices.ForEach(id =>
+            {
+                if (mulliganCard1.Contains(game.IdEntityDic[id].Card))
+                {
+                    mulligan1.Add(id);
+                }
+            });
+
+            List<int> mulligan2 = new List<int>();
+            game.Player2.Choice.Choices.ForEach(id =>
+            {
+                if (mulliganCard2.Contains(game.IdEntityDic[id].Card))
+                {
+                    mulligan2.Add(id);
+                }
+            });
 
             game.Process(ChooseTask.Mulligan(game.Player1, mulligan1));
             game.Process(ChooseTask.Mulligan(game.Player2, mulligan2));

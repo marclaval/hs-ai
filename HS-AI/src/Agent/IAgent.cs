@@ -12,7 +12,7 @@ namespace HSAI.Agent
 	public interface IAgent
 	{
 		IDeck Deck { get; }
-		List<int> Mulligan(List<IPlayable> choices);
+		List<Card> Mulligan(List<Card> choices);
 		void PlayTurn(Game game, Controller controller);
 	}
 
@@ -23,12 +23,19 @@ namespace HSAI.Agent
 
 		public Agent(string deckstring)
 		{
-            Deck = DeckBuilder.DeserializeDeckString(deckstring);;
+            Deck = DeckBuilder.DeserializeDeckString(deckstring);
 		}
 
-		public virtual List<int> Mulligan(List<IPlayable> choices)
+        public Agent(List<Card> cards, CardClass heroClass)
+        {
+            var deck = new HSAI.Deck.Deck();
+            deck.CardList = cards;
+            deck.HeroClass = heroClass;
+        }
+
+        public virtual List<Card> Mulligan(List<Card> choices)
 		{
-			return choices.Where(t => t.Cost <= 3).Select(t => t.Id).ToList();
+			return choices.Where(t => t.Cost > 3).ToList();
 		}
 
 		public virtual void PlayTurn(Game game, Controller controller)

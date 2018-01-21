@@ -18,27 +18,38 @@ namespace HSAI.Agent
 
         public Expectiminimax(string deckstring, Strategy strategy) : base(deckstring)
 		{
-			switch(strategy)
-			{
-				case Strategy.Aggro:
-					_score = new AggroScore();
-					break;
-				case Strategy.Control:
-					_score = new ControlScore();
-					break;
-				case Strategy.Fatigue:
-					_score = new FatigueScore();
-					break;
-				case Strategy.Midrange:
-					_score = new MidRangeScore();
-					break;
-				case Strategy.Ramp:
-					_score = new RampScore();
-					break;
-			}
-		}
+            SetStrategy(strategy);
+        }
 
-		public override void PlayTurn(Game game, Controller controller)
+        public Expectiminimax(List<Card> cards, CardClass heroClass, Strategy strategy) : base(cards, heroClass)
+        {
+            SetStrategy(strategy);
+        }
+
+        private void SetStrategy(Strategy strategy)
+        {
+            switch (strategy)
+            {
+                case Strategy.Aggro:
+                    _score = new AggroScore();
+                    break;
+                case Strategy.Control:
+                    _score = new ControlScore();
+                    break;
+                case Strategy.Fatigue:
+                    _score = new FatigueScore();
+                    break;
+                case Strategy.Midrange:
+                    _score = new MidRangeScore();
+                    break;
+                case Strategy.Ramp:
+                    _score = new RampScore();
+                    break;
+            }
+        }
+
+
+        public override void PlayTurn(Game game, Controller controller)
 		{
 			while (game.State == State.RUNNING && game.CurrentPlayer == controller)
 			{

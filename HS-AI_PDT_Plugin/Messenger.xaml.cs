@@ -10,20 +10,35 @@ namespace HS_AI_PDT_Plugin
     /// </summary>
     public partial class Messenger : UserControl
     {
+        private List<string> _messages;
         public Messenger()
         {
+            _messages = new List<string>();
             InitializeComponent();
+            Refresh();
         }
 
-        public void Update(List<string> messages)
+        public void Set(List<string> messages)
         {
-            this.Visibility = messages.Count <= 0 ? Visibility.Hidden : Visibility.Visible;
-            this.msgBinding.ItemsSource = messages;
-            UpdatePosition();
+            _messages = messages;
+            Refresh();
         }
 
-        public void UpdatePosition()
+        public void Add(string message)
         {
+            _messages.Add(message);
+            Refresh();
+        }
+
+        public void Reset()
+        {
+            _messages = new List<string>();
+            Refresh();
+        }
+
+        private void Refresh()
+        {
+            this.msgBinding.ItemsSource = new List<string>(_messages);
             Canvas.SetBottom(this, 0);
             Canvas.SetLeft(this, 0);
         }

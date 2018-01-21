@@ -30,6 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HearthMirror">
+      <HintPath>..\..\Hearthstone-Deck-Tracker\HearthMirror\HearthMirror\bin\x86\Debug\HearthMirror.dll</HintPath>
+    </Reference>
     <Reference Include="HearthstoneDeckTracker">
       <HintPath>..\Hearthstone-Deck-Tracker\Hearthstone Deck Tracker\bin\x86\Debug\HearthstoneDeckTracker.exe</HintPath>
     </Reference>
@@ -47,6 +50,8 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Converter.cs" />
+    <Compile Include="GameEventsHandler.cs" />
     <Compile Include="HS_AI_PDT_Plugin.cs" />
     <Compile Include="Messenger.xaml.cs">
       <DependentUpon>Messenger.xaml</DependentUpon>
