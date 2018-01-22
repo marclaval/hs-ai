@@ -13,7 +13,7 @@ namespace HSAI.Agent
 	{
 		IDeck Deck { get; }
 		List<Card> Mulligan(List<Card> choices);
-		void PlayTurn(Game game, Controller controller);
+		List<PlayerTask> PlayTurn(Game game, Controller controller);
 	}
 
 	public abstract class Agent : IAgent
@@ -38,15 +38,18 @@ namespace HSAI.Agent
 			return choices.Where(t => t.Cost > 3).ToList();
 		}
 
-		public virtual void PlayTurn(Game game, Controller controller)
+		public virtual List<PlayerTask> PlayTurn(Game game, Controller controller)
 		{
-			while (game.State == State.RUNNING && game.CurrentPlayer == controller)
+            List<PlayerTask> outputTasks = new List<PlayerTask>();
+            while (game.State == State.RUNNING && game.CurrentPlayer == controller)
 			{
 				List<PlayerTask> options = game.ControllerById(game.CurrentPlayer.Id).Options(true);
 				PlayerTask task = options[Rnd.Next(options.Count)];
+                outputTasks.Add(task);
 				Console.WriteLine($"  {task.FullPrint()}");
 				game.Process(task);
 			}
+            return outputTasks;
 		}
 	}
 }

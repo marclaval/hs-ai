@@ -37,7 +37,9 @@ namespace HS_AI_Runner
                     Player2Deck = agent2.Deck.Cards(),
                     FillDecks = false,
                     Shuffle = true,
-                    SkipMulligan = false
+                    SkipMulligan = false,
+                    Logging = false,
+                    History = false
                 });
             game.StartGame();
 

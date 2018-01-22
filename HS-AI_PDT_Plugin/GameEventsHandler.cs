@@ -12,6 +12,7 @@ using SabberStoneCore.Config;
 using STC = SabberStoneCore.Model;
 using SabberStoneCoreAi.Meta;
 using SabberStoneCore.Enums;
+using SabberStoneCore.Tasks;
 
 namespace HS_AI_PDT_Plugin
 {
@@ -19,8 +20,9 @@ namespace HS_AI_PDT_Plugin
     {
         private Messenger _messenger;
         private ActivePlayer _activePlayer;
-        private int numberOfTurns = 0;
+        private int _numberOfTurns = 0;
         private bool _isMulliganPhase = true;
+        private bool _isMulliganDone = false;
         private List<SabberStoneCore.Model.Card> _mulliganCards = new List<SabberStoneCore.Model.Card>();
         private IAgent _agent;
 
@@ -29,21 +31,15 @@ namespace HS_AI_PDT_Plugin
             _messenger = messenger;
         }
 
-        internal void TurnStart(ActivePlayer player)
+        internal void InMenu()
         {
-            _activePlayer = player;
-            numberOfTurns++;
-
-            GameV2 Game = Core.Game;
-            _messenger.Reset();
-            _messenger.Add("HS-AI: TurnStart: " + Game.GetTurnNumber() + "_" + player.ToString());
+            _messenger.Hide();
         }
 
         internal void GameStart()
         {
             _messenger.Reset();
             _messenger.Show();
-            _isMulliganPhase = true;
 
             // Init agent
             List<STC.Card> cardsInDeck = new List<STC.Card>();
@@ -60,32 +56,29 @@ namespace HS_AI_PDT_Plugin
             }
             _agent = new Expectiminimax(cardsInDeck, Converter.getCardClass(Core.Game.Player.Class), Strategy.Control);
 
-            _messenger.Add("HS-AI: Game starts!");
+            _messenger.Add("Game starts!");
             //System.Diagnostics.Debugger.Break();
         }
 
-        internal void InMenu()
-        {
-            _messenger.Hide();
-        }
-
+        // Needed only to gather cards drawn for mulligan
         internal void PlayerDraw(Card card)
         {
-            Console.WriteLine("PlayerDraw" + card.Name);
+            Console.WriteLine("PlayerDraw " + card.Name);
             if (_isMulliganPhase)
             {
                 _mulliganCards.Add(STC.Cards.FromAssetId(card.DbfIf));
+            } else
+            {
+                launchAgent();
             }
         }
 
         // Needed to know when Mulligan info are ready, i.E. first opponent draw means player has drawn all
         internal void OpponentDraw()
         {
-            Console.WriteLine("OpponentDraw");
             if (_isMulliganPhase)
             {
                 _isMulliganPhase = false;
-
                 // Do mulligan
                 List<STC.Card> toBeDropped = _agent.Mulligan(_mulliganCards);
                 _messenger.Add("Cards to be dropped:");
@@ -96,66 +89,85 @@ namespace HS_AI_PDT_Plugin
             }
         }
 
-        internal void PlayerGet(Hearthstone_Deck_Tracker.Hearthstone.Card card)
+        internal void TurnStart(ActivePlayer player)
         {
-            Console.WriteLine("PlayerGet" + card.Name);
-        }
+            _isMulliganDone = true;
+            _activePlayer = player;
+            _numberOfTurns++;
 
-        internal void PlayerPlay(Hearthstone_Deck_Tracker.Hearthstone.Card card)
-        {
-            Console.WriteLine("PlayerPlay" + card.Name);
+            GameV2 Game = Core.Game;
+            if (player == ActivePlayer.Player)
+            {
+                _messenger.Reset();
+                _messenger.Add("Turn " + Game.GetTurnNumber());
+            }
         }
 
         // Discard from hand, e.g. when playing Soulfire
         internal void PlayerHandDiscard(Hearthstone_Deck_Tracker.Hearthstone.Card card)
         {
-            Console.WriteLine("PlayerHandDiscard" + card.Name);
+            Console.WriteLine("PlayerHandDiscard " + card.Name);
+            launchAgent();
         }
 
-        // When player mulligan's away a card
-        internal void PlayerMulligan(Hearthstone_Deck_Tracker.Hearthstone.Card card)
+        internal void PlayerGet(Hearthstone_Deck_Tracker.Hearthstone.Card card)
         {
-            Console.WriteLine("PlayerMulligan" + card.Name);
+            Console.WriteLine("PlayerGet " + card.Name);
+            launchAgent();
+        }
+
+
+        private void launchAgent()
+        {
+            if (_activePlayer == ActivePlayer.Player && _isMulliganDone)
+            {
+                SabberStoneCore.Model.Game STCGame = Converter.convertGameV2(Core.Game, _numberOfTurns);
+                List<PlayerTask> tasks = _agent.PlayTurn(STCGame, STCGame.CurrentPlayer);
+                tasks.ForEach(task =>
+                {
+                    _messenger.Add(task.FullPrint());
+                });
+            }
         }
 
         internal void PlayerDeckDiscard(Hearthstone_Deck_Tracker.Hearthstone.Card card)
         {
-            Console.WriteLine("PlayerDeckDiscard" + card.Name);
+            Console.WriteLine("??????? PlayerDeckDiscard " + card.Name);
         }
 
         internal void PlayerPlayToDeck(Hearthstone_Deck_Tracker.Hearthstone.Card card)
         {
-            Console.WriteLine("PlayerPlayToDeck" + card.Name);
+            Console.WriteLine("??????? PlayerPlayToDeck " + card.Name);
         }
 
         internal void PlayerPlayToHand(Hearthstone_Deck_Tracker.Hearthstone.Card card)
         {
-            Console.WriteLine("PlayerPlayToHand" + card.Name);
+            Console.WriteLine("??????? PlayerPlayToHand " + card.Name);
         }
 
         internal void PlayerPlayToGraveyard(Hearthstone_Deck_Tracker.Hearthstone.Card card)
         {
-            Console.WriteLine("PlayerPlayToGraveyard" + card.Name);
+            Console.WriteLine("??????? PlayerPlayToGraveyard " + card.Name);
         }
 
         internal void PlayerCreateInDeck(Hearthstone_Deck_Tracker.Hearthstone.Card card)
         {
-            Console.WriteLine("PlayerCreateInDeck" + card.Name);
+            Console.WriteLine("??????? PlayerCreateInDeck " + card.Name);
         }
 
         internal void PlayerCreateInPlay(Hearthstone_Deck_Tracker.Hearthstone.Card card)
         {
-            Console.WriteLine("PlayerCreateInPlay" + card.Name);
+            Console.WriteLine("??????? PlayerCreateInPlay " + card.Name);
         }
 
         internal void PlayerJoustReveal(Hearthstone_Deck_Tracker.Hearthstone.Card card)
         {
-            Console.WriteLine("PlayerJoustReveal" + card.Name);
+            Console.WriteLine("??????? PlayerJoustReveal " + card.Name);
         }
 
         internal void PlayerDeckToPlay(Hearthstone_Deck_Tracker.Hearthstone.Card card)
         {
-            Console.WriteLine("PlayerDeckToPlay" + card.Name);
+            Console.WriteLine("??????? PlayerDeckToPlay " + card.Name);
         }
     }
 }

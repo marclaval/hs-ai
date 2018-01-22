@@ -30,6 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HearthDb">
+      <HintPath>..\..\Hearthstone-Deck-Tracker\HearthDb\HearthDb\bin\x86\Debug\HearthDb.dll</HintPath>
+    </Reference>
     <Reference Include="HearthMirror">
       <HintPath>..\..\Hearthstone-Deck-Tracker\HearthMirror\HearthMirror\bin\x86\Debug\HearthMirror.dll</HintPath>
     </Reference>

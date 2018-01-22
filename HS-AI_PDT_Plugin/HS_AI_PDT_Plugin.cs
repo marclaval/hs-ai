@@ -31,9 +31,9 @@ namespace HS_AI_PDT_Plugin
 
             GameEvents.OnPlayerDraw.Add(_gameEventsHandler.PlayerDraw);
             GameEvents.OnPlayerGet.Add(_gameEventsHandler.PlayerGet);
-            GameEvents.OnPlayerPlay.Add(_gameEventsHandler.PlayerPlay);
+            //GameEvents.OnPlayerPlay.Add(_gameEventsHandler.PlayerPlay);
             GameEvents.OnPlayerHandDiscard.Add(_gameEventsHandler.PlayerHandDiscard);
-            GameEvents.OnPlayerMulligan.Add(_gameEventsHandler.PlayerMulligan);
+            //GameEvents.OnPlayerMulligan.Add(_gameEventsHandler.PlayerMulligan);
             GameEvents.OnPlayerDeckDiscard.Add(_gameEventsHandler.PlayerDeckDiscard);
             GameEvents.OnPlayerPlayToDeck.Add(_gameEventsHandler.PlayerPlayToDeck);
             GameEvents.OnPlayerPlayToHand.Add(_gameEventsHandler.PlayerPlayToHand);

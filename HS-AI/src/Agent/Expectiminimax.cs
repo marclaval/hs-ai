@@ -49,9 +49,10 @@ namespace HSAI.Agent
         }
 
 
-        public override void PlayTurn(Game game, Controller controller)
+        public override List<PlayerTask> PlayTurn(Game game, Controller controller)
 		{
-			while (game.State == State.RUNNING && game.CurrentPlayer == controller)
+            List<PlayerTask> outputTasks = new List<PlayerTask>();
+            while (game.State == State.RUNNING && game.CurrentPlayer == controller)
 			{
 				DateTime begin = DateTime.Now;
 				Node rootNode = new Node(game, null, controller.Id, null, _score);
@@ -117,11 +118,13 @@ namespace HSAI.Agent
 				foreach (PlayerTask task in tasks)
 				{
 					Console.WriteLine($"  {task.FullPrint()}");
+                    outputTasks.Add(task);
 					game.Process(task);
 					if (controller.Choice != null)
 						break;
 				}
 			}
+            return outputTasks;
 		}
 	}
 
