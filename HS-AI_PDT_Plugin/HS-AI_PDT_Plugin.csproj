@@ -31,13 +31,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="HearthDb">
-      <HintPath>..\..\Hearthstone-Deck-Tracker\HearthDb\HearthDb\bin\x86\Debug\HearthDb.dll</HintPath>
+      <HintPath>..\external_projects\Hearthstone-Deck-Tracker\HearthDb\HearthDb\bin\x86\Debug\HearthDb.dll</HintPath>
     </Reference>
     <Reference Include="HearthMirror">
-      <HintPath>..\..\Hearthstone-Deck-Tracker\HearthMirror\HearthMirror\bin\x86\Debug\HearthMirror.dll</HintPath>
+      <HintPath>..\external_projects\Hearthstone-Deck-Tracker\HearthMirror\HearthMirror\bin\x86\Debug\HearthMirror.dll</HintPath>
     </Reference>
     <Reference Include="HearthstoneDeckTracker">
-      <HintPath>..\Hearthstone-Deck-Tracker\Hearthstone Deck Tracker\bin\x86\Debug\HearthstoneDeckTracker.exe</HintPath>
+      <HintPath>..\external_projects\Hearthstone-Deck-Tracker\Hearthstone Deck Tracker\bin\x86\Debug\HearthstoneDeckTracker.exe</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
