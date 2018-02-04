@@ -35,7 +35,7 @@ namespace HSAI.Agent
 
         public virtual List<Card> Mulligan(List<Card> choices)
 		{
-			return choices.Where(t => t.Cost > 3).ToList();
+			return choices.Where(t => t.Cost <= 3).ToList();
 		}
 
 		public virtual List<PlayerTask> PlayTurn(Game game, Controller controller)

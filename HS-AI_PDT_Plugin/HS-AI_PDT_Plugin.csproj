@@ -60,6 +60,7 @@
       <DependentUpon>Messenger.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RandomController.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\external_projects\SabberStone\SabberStoneCore\SabberStoneCore.csproj">

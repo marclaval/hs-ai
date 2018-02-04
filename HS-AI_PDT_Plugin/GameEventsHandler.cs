@@ -13,6 +13,7 @@ using STC = SabberStoneCore.Model;
 using SabberStoneCoreAi.Meta;
 using SabberStoneCore.Enums;
 using SabberStoneCore.Tasks;
+using SabberStoneCore.Tasks.PlayerTasks;
 
 namespace HS_AI_PDT_Plugin
 {
@@ -23,8 +24,12 @@ namespace HS_AI_PDT_Plugin
         private int _numberOfTurns = 0;
         private bool _isMulliganPhase = true;
         private bool _isMulliganDone = false;
+        private bool _isNewTurn = false;
         private List<SabberStoneCore.Model.Card> _mulliganCards = new List<SabberStoneCore.Model.Card>();
+        private STC.Game _game;
         private IAgent _agent;
+        private RandomController _randomController = new RandomController();
+        private List<int> _toBeKept = new List<int>();
 
         public GameEventsHandler(Messenger messenger)
         {
@@ -38,37 +43,37 @@ namespace HS_AI_PDT_Plugin
 
         internal void GameStart()
         {
+            // Reset
             _messenger.Reset();
             _messenger.Show();
-
-            // Init agent
-            List<STC.Card> cardsInDeck = new List<STC.Card>();
-            HearthMirror.Objects.Deck MirrorDeck = Core.Game.CurrentSelectedDeck;
-            if (MirrorDeck != null)
-            {
-                MirrorDeck.Cards.ForEach(card =>
-                {
-                    for (var i = 0; i < card.Count; i++)
-                    {
-                        cardsInDeck.Add(STC.Cards.FromId(card.Id));
-                    }
-                });
-            }
-            _agent = new Expectiminimax(cardsInDeck, Converter.getCardClass(Core.Game.Player.Class), Strategy.Control);
+            _numberOfTurns = 0;
+            _isMulliganPhase = true;
+            _isMulliganDone = false;
+            _isNewTurn = false;
+            _mulliganCards = new List<SabberStoneCore.Model.Card>();
+            _randomController = new RandomController();
+            _toBeKept = new List<int>();
 
             _messenger.Add("Game starts!");
             //System.Diagnostics.Debugger.Break();
         }
 
-        // Needed only to gather cards drawn for mulligan
         internal void PlayerDraw(Card card)
         {
             Console.WriteLine("PlayerDraw " + card.Name);
-            if (_isMulliganPhase)
+            _randomController.cardsToDraw.Add(card.Name);
+            if (!_isMulliganPhase)
             {
-                _mulliganCards.Add(STC.Cards.FromAssetId(card.DbfIf));
-            } else
-            {
+                if (_isNewTurn)
+                {
+                    _isNewTurn = false;
+                    _game.MainReady();
+                    _game.MainStartTriggers();
+                    _game.MainRessources();
+                    _game.MainDraw();
+                    _game.MainStart();
+                    _game.Step = Step.MAIN_ACTION;
+                }
                 launchAgent();
             }
         }
@@ -79,27 +84,58 @@ namespace HS_AI_PDT_Plugin
             if (_isMulliganPhase)
             {
                 _isMulliganPhase = false;
+                initGame();
                 // Do mulligan
-                List<STC.Card> toBeDropped = _agent.Mulligan(_mulliganCards);
-                _messenger.Add("Cards to be dropped:");
-                toBeDropped.ForEach(card =>
+                var cardsToKeep = _agent.Mulligan(_game.Player1.Choice.Choices.Select(p => _game.IdEntityDic[p].Card).ToList());
+                _game.Player1.Choice.Choices.ForEach(id =>
+                {
+                    if (cardsToKeep.Contains(_game.IdEntityDic[id].Card))
+                    {
+                        _toBeKept.Add(id);
+                    }
+                });
+                _messenger.Add("Cards to be kept:");
+                cardsToKeep.ForEach(card =>
                 {
                     _messenger.Add(card.Name);
                 });
+            } else
+            {
+                if (_isNewTurn)
+                {
+                    _isNewTurn = false;
+                    _game.MainReady();
+                    _game.MainStartTriggers();
+                    _game.MainRessources();
+                    _game.MainDraw();
+                    _game.MainStart();
+                    _game.Step = Step.MAIN_ACTION;
+                }
             }
         }
 
         internal void TurnStart(ActivePlayer player)
         {
+            if (!_isMulliganDone)
+            {
+                _game.Process(ChooseTask.Mulligan(_game.Player1, _toBeKept));
+                _game.Process(ChooseTask.Mulligan(_game.Player2, _game.Player2.Choice.Choices));
+            }
             _isMulliganDone = true;
+            _isNewTurn = true;
             _activePlayer = player;
             _numberOfTurns++;
 
-            GameV2 Game = Core.Game;
+            if (_numberOfTurns > 1)
+            {
+                _game.MainNext();
+            }
+
+            GameV2 gameV2 = Core.Game;
             if (player == ActivePlayer.Player)
             {
                 _messenger.Reset();
-                _messenger.Add("Turn " + Game.GetTurnNumber());
+                _messenger.Add("Turn " + gameV2.GetTurnNumber());
             }
         }
 
@@ -116,17 +152,72 @@ namespace HS_AI_PDT_Plugin
             launchAgent();
         }
 
+        private void initGame()
+        {
+            // Init decks 
+            List<STC.Card> cardsInDeck = new List<STC.Card>();
+            HearthMirror.Objects.Deck MirrorDeck = Core.Game.CurrentSelectedDeck;
+            if (MirrorDeck != null)
+            {
+                MirrorDeck.Cards.ForEach(card =>
+                {
+                    for (var i = 0; i < card.Count; i++)
+                    {
+                        cardsInDeck.Add(STC.Cards.FromId(card.Id));
+                    }
+                });
+            }
+
+            List<STC.Card> UnknownDeck = new List<STC.Card>();
+            for (int i = 0; i < 30; i++)
+            {
+                UnknownDeck.Add(new STC.Card()
+                {
+                    Id = "Unknown",
+                    Name = "Unknown",
+                    Tags = new Dictionary<GameTag, int> { [GameTag.CARDTYPE] = (int)CardType.MINION },
+                });
+            }
+
+            // Init agent
+            _agent = new Expectiminimax(cardsInDeck, Converter.getCardClass(Core.Game.Player.Class), Strategy.Control);
+
+            // Init game
+            GameV2 gameV2 = Core.Game;
+            _game = new STC.Game(
+                new GameConfig()
+                {
+                    StartPlayer = gameV2.Player.GoingFirst ? 1 : 2,
+                    Player1Name = gameV2.Player.Name,
+                    Player1HeroClass = Converter.getCardClass(gameV2.Player.Class),
+                    Player1Deck = cardsInDeck,
+                    Player2Name = gameV2.Opponent.Name,
+                    Player2HeroClass = Converter.getCardClass(gameV2.Opponent.Class),
+                    Player2Deck = UnknownDeck,
+                    FillDecks = false,
+                    Shuffle = false,
+                    SkipMulligan = false,
+                    AutoNextStep = false,
+                    Logging = false,
+                    History = false,
+                    RandomController = _randomController
+                });
+            _game.StartGame();
+            _game.BeginDraw();
+            _game.BeginMulligan();
+        }
 
         private void launchAgent()
         {
-            if (_activePlayer == ActivePlayer.Player && _isMulliganDone)
+            if (_isMulliganDone && _activePlayer == ActivePlayer.Player && _isMulliganDone)
             {
-                SabberStoneCore.Model.Game STCGame = Converter.convertGameV2(Core.Game, _numberOfTurns);
+                STC.Game STCGame = _game.Clone(false, true, new STC.RandomController());
                 List<PlayerTask> tasks = _agent.PlayTurn(STCGame, STCGame.CurrentPlayer);
                 tasks.ForEach(task =>
                 {
                     _messenger.Add(task.FullPrint());
                 });
+                //TODO : execute task on next TurnStart, once randomness is resolved
             }
         }
 

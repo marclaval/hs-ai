@@ -81,8 +81,9 @@ namespace HSAI.Agent
 						index += count;
 						additionalNodesLeft--;
 					}
-					WaitHandle.WaitAll(doneEvents);
-					workers.ForEach(w => {
+                    foreach (var e in doneEvents)
+                        e.WaitOne();
+                    workers.ForEach(w => {
 						for (int i = 0; i < w.outputs.Length; i++)
 						{
 							w.outputs[i].ForEach(nn =>
