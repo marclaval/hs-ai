@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
-        <ListView HorizontalAlignment="Left" Height="300" VerticalAlignment="Top" Width="300" Name="msgBinding" Opacity="0.5" Background="#FFE0E0E0"/>
+        <ListView HorizontalAlignment="Left" Height="300" VerticalAlignment="Top" Width="500" Name="msgBinding" Opacity="0.5" Background="#FFE0E0E0"/>
 
     </Grid>
 </UserControl>

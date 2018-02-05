@@ -29,11 +29,13 @@ namespace HS_AI_PDT_Plugin
             GameEvents.OnTurnStart.Add(_gameEventsHandler.TurnStart);
             GameEvents.OnInMenu.Add(_gameEventsHandler.InMenu);
 
+            GameEvents.OnEntityWillTakeDamage.Add(_gameEventsHandler.EntityWillTakeDamage);
+
             GameEvents.OnPlayerDraw.Add(_gameEventsHandler.PlayerDraw);
             GameEvents.OnPlayerGet.Add(_gameEventsHandler.PlayerGet);
-            //GameEvents.OnPlayerPlay.Add(_gameEventsHandler.PlayerPlay);
+            GameEvents.OnPlayerPlay.Add(_gameEventsHandler.PlayerPlay);
             GameEvents.OnPlayerHandDiscard.Add(_gameEventsHandler.PlayerHandDiscard);
-            //GameEvents.OnPlayerMulligan.Add(_gameEventsHandler.PlayerMulligan);
+            GameEvents.OnPlayerMulligan.Add(_gameEventsHandler.PlayerMulligan);
             GameEvents.OnPlayerDeckDiscard.Add(_gameEventsHandler.PlayerDeckDiscard);
             GameEvents.OnPlayerPlayToDeck.Add(_gameEventsHandler.PlayerPlayToDeck);
             GameEvents.OnPlayerPlayToHand.Add(_gameEventsHandler.PlayerPlayToHand);
@@ -42,8 +44,27 @@ namespace HS_AI_PDT_Plugin
             GameEvents.OnPlayerCreateInPlay.Add(_gameEventsHandler.PlayerCreateInPlay);
             GameEvents.OnPlayerJoustReveal.Add(_gameEventsHandler.PlayerJoustReveal);
             GameEvents.OnPlayerDeckToPlay.Add(_gameEventsHandler.PlayerDeckToPlay);
+            GameEvents.OnPlayerHeroPower.Add(_gameEventsHandler.PlayerHeroPower);
+            GameEvents.OnPlayerFatigue.Add(_gameEventsHandler.PlayerFatigue);
+            GameEvents.OnPlayerMinionAttack.Add(_gameEventsHandler.PlayerMinionAttack);
 
             GameEvents.OnOpponentDraw.Add(_gameEventsHandler.OpponentDraw);
+            GameEvents.OnOpponentGet.Add(_gameEventsHandler.OpponentGet);
+            GameEvents.OnOpponentPlay.Add(_gameEventsHandler.OpponentPlay);
+            GameEvents.OnOpponentHandDiscard.Add(_gameEventsHandler.OpponentHandDiscard);
+            GameEvents.OnOpponentMulligan.Add(_gameEventsHandler.OpponentMulligan);
+            GameEvents.OnOpponentDeckDiscard.Add(_gameEventsHandler.OpponentDeckDiscard);
+            GameEvents.OnOpponentPlayToDeck.Add(_gameEventsHandler.OpponentPlayToDeck);
+            GameEvents.OnOpponentPlayToHand.Add(_gameEventsHandler.OpponentPlayToHand);
+            GameEvents.OnOpponentPlayToGraveyard.Add(_gameEventsHandler.OpponentPlayToGraveyard);
+            GameEvents.OnOpponentCreateInDeck.Add(_gameEventsHandler.OpponentCreateInDeck);
+            GameEvents.OnOpponentCreateInPlay.Add(_gameEventsHandler.OpponentCreateInPlay);
+            GameEvents.OnOpponentJoustReveal.Add(_gameEventsHandler.OpponentJoustReveal);
+            GameEvents.OnOpponentDeckToPlay.Add(_gameEventsHandler.OpponentDeckToPlay);
+            GameEvents.OnOpponentHeroPower.Add(_gameEventsHandler.OpponentHeroPower);
+            GameEvents.OnOpponentFatigue.Add(_gameEventsHandler.OpponentFatigue);
+            GameEvents.OnOpponentMinionAttack.Add(_gameEventsHandler.OpponentMinionAttack);
+            GameEvents.OnOpponentSecretTriggered.Add(_gameEventsHandler.OpponentSecretTriggered);
         }
 
         public void OnUnload()
