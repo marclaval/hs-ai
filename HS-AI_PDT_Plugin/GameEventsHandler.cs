@@ -14,6 +14,7 @@ using SabberStoneCoreAi.Meta;
 using SabberStoneCore.Enums;
 using SabberStoneCore.Tasks;
 using SabberStoneCore.Tasks.PlayerTasks;
+using Hearthstone_Deck_Tracker.Hearthstone.Entities;
 
 namespace HS_AI_PDT_Plugin
 {
@@ -219,6 +220,36 @@ namespace HS_AI_PDT_Plugin
                 });
                 //TODO : execute task on next TurnStart, once randomness is resolved
             }
+        }
+
+        internal void PlayerBeforePlay(Entity entity)
+        {
+            Console.WriteLine("??????? PlayerBeforePlay " + entity.Card.Name);
+        }
+
+        internal void PlayerBeforeHeroPower()
+        {
+            Console.WriteLine("??????? PlayerBeforeHeroPower ");
+        }
+
+        internal void PlayerBeforeMinionAttack(AttackInfoWithEntity attackInfo)
+        {
+            Console.WriteLine("??????? PlayerBeforeMinionAttack " + attackInfo.Attacker.Card.Name + " -> " + attackInfo.Defender.Card.Name);
+        }
+
+        internal void OpponentBeforePlay(Entity entity)
+        {
+            Console.WriteLine("??????? OpponentBeforePlay " + entity.Card.Name);
+        }
+
+        internal void OpponentBeforeHeroPower()
+        {
+            Console.WriteLine("??????? OpponentBeforeHeroPower ");
+        }
+
+        internal void OpponentBeforeMinionAttack(AttackInfoWithEntity attackInfo)
+        {
+            Console.WriteLine("??????? OpponentBeforeMinionAttack " + attackInfo.Attacker.Card.Name + " -> " + attackInfo.Defender.Card.Name);
         }
 
         internal void EntityWillTakeDamage(PredamageInfo predamageInfo)

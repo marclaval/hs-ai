@@ -47,6 +47,9 @@ namespace HS_AI_PDT_Plugin
             GameEvents.OnPlayerHeroPower.Add(_gameEventsHandler.PlayerHeroPower);
             GameEvents.OnPlayerFatigue.Add(_gameEventsHandler.PlayerFatigue);
             GameEvents.OnPlayerMinionAttack.Add(_gameEventsHandler.PlayerMinionAttack);
+            GameEvents.OnPlayerBeforePlay.Add(_gameEventsHandler.PlayerBeforePlay);
+            GameEvents.OnPlayerBeforeHeroPower.Add(_gameEventsHandler.PlayerBeforeHeroPower);
+            GameEvents.OnPlayerBeforeMinionAttack.Add(_gameEventsHandler.PlayerBeforeMinionAttack);
 
             GameEvents.OnOpponentDraw.Add(_gameEventsHandler.OpponentDraw);
             GameEvents.OnOpponentGet.Add(_gameEventsHandler.OpponentGet);
@@ -65,6 +68,9 @@ namespace HS_AI_PDT_Plugin
             GameEvents.OnOpponentFatigue.Add(_gameEventsHandler.OpponentFatigue);
             GameEvents.OnOpponentMinionAttack.Add(_gameEventsHandler.OpponentMinionAttack);
             GameEvents.OnOpponentSecretTriggered.Add(_gameEventsHandler.OpponentSecretTriggered);
+            GameEvents.OnOpponentBeforePlay.Add(_gameEventsHandler.OpponentBeforePlay);
+            GameEvents.OnOpponentBeforeHeroPower.Add(_gameEventsHandler.OpponentBeforeHeroPower);
+            GameEvents.OnOpponentBeforeMinionAttack.Add(_gameEventsHandler.OpponentBeforeMinionAttack);
         }
 
         public void OnUnload()
