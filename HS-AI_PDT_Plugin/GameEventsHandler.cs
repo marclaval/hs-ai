@@ -15,6 +15,7 @@ using SabberStoneCore.Enums;
 using SabberStoneCore.Tasks;
 using SabberStoneCore.Tasks.PlayerTasks;
 using Hearthstone_Deck_Tracker.Hearthstone.Entities;
+using STCEntities = SabberStoneCore.Model.Entities;
 
 namespace HS_AI_PDT_Plugin
 {
@@ -26,11 +27,14 @@ namespace HS_AI_PDT_Plugin
         private bool _isMulliganPhase = true;
         private bool _isMulliganDone = false;
         private bool _isNewTurn = false;
+        private bool _isProcessingTask = false;
         private List<SabberStoneCore.Model.Card> _mulliganCards = new List<SabberStoneCore.Model.Card>();
         private STC.Game _game;
         private IAgent _agent;
-        private RandomController _randomController = new RandomController();
         private List<int> _toBeKept = new List<int>();
+        private PlayerAction _playerAction = null;
+        private Dictionary<int, int> _entityIdMapping;
+        private RandomController _randomController;
 
         public GameEventsHandler(Messenger messenger)
         {
@@ -51,11 +55,14 @@ namespace HS_AI_PDT_Plugin
             _isMulliganPhase = true;
             _isMulliganDone = false;
             _isNewTurn = false;
+            _isProcessingTask = false;
             _mulliganCards = new List<SabberStoneCore.Model.Card>();
-            _randomController = new RandomController();
+            _entityIdMapping = new Dictionary<int, int>();
+            _randomController = new RandomController(ref _entityIdMapping);
             _toBeKept = new List<int>();
+            _playerAction = null;
 
-            _messenger.Add("Game starts!");
+            _messenger.SetTitle("Game starts!");
             //System.Diagnostics.Debugger.Break();
         }
 
@@ -73,6 +80,8 @@ namespace HS_AI_PDT_Plugin
 
             if (_numberOfTurns > 1)
             {
+                ProcessPlayerAction();
+                _game.MainEnd();
                 _game.MainNext();
             }
 
@@ -80,14 +89,15 @@ namespace HS_AI_PDT_Plugin
             if (player == ActivePlayer.Player)
             {
                 _messenger.Reset();
-                _messenger.Add("Turn " + gameV2.GetTurnNumber());
+                _messenger.SetTitle("Turn " + gameV2.GetTurnNumber());
             }
+            Converter.Validate(_game, gameV2);
         }
 
-        internal void PlayerDraw(Card card)
+        internal void PlayerDraw(Entity entity)
         {
-            Console.WriteLine("PlayerDraw " + card.Name);
-            _randomController.cardsToDraw.Add(card.Name);
+            Console.WriteLine("PlayerDraw " + entity.Card.Name);
+            _randomController.cardsToDraw.Add(entity);
             if (!_isMulliganPhase)
             {
                 if (_isNewTurn)
@@ -100,21 +110,25 @@ namespace HS_AI_PDT_Plugin
                     _game.MainStart();
                     _game.Step = Step.MAIN_ACTION;
                 }
-                launchAgent();
+                if (!_isProcessingTask)
+                    launchAgent();
             }
         }
 
-        internal void PlayerGet(Hearthstone_Deck_Tracker.Hearthstone.Card card)
+        internal void PlayerGet(Entity entity)
         {
-            Console.WriteLine("PlayerGet " + card.Name);
-            launchAgent();
+            Console.WriteLine("PlayerGet " + entity.Card.Name);
+            _randomController.cardsToPick.Add(entity);
+            if (!_isProcessingTask)
+                launchAgent();
         }
 
         // Discard from hand, e.g. when playing Soulfire
         internal void PlayerHandDiscard(Hearthstone_Deck_Tracker.Hearthstone.Card card)
         {
             Console.WriteLine("PlayerHandDiscard " + card.Name);
-            launchAgent();
+            if (!_isProcessingTask)
+                launchAgent();
         }
 
         // Needed to know when Mulligan info are ready, i.E. first opponent draw means player has drawn all
@@ -133,7 +147,7 @@ namespace HS_AI_PDT_Plugin
                         _toBeKept.Add(id);
                     }
                 });
-                _messenger.Add("Cards to be kept:");
+                _messenger.SetTitle("Cards to be kept:");
                 cardsToKeep.ForEach(card =>
                 {
                     _messenger.Add(card.Name);
@@ -176,24 +190,24 @@ namespace HS_AI_PDT_Plugin
                 {
                     Id = "Unknown",
                     Name = "Unknown",
-                    Tags = new Dictionary<GameTag, int> { [GameTag.CARDTYPE] = (int)CardType.MINION },
+                    Tags = new Dictionary<GameTag, int> { [GameTag.CARDTYPE] = (int)CardType.MINION, [GameTag.COST] = 51 },
                 });
             }
 
             // Init agent
-            _agent = new Expectiminimax(cardsInDeck, Converter.getCardClass(Core.Game.Player.Class), Strategy.Control);
+            _agent = new Expectiminimax(cardsInDeck, Converter.GetCardClass(Core.Game.Player.Class), Strategy.Control);
 
             // Init game
             GameV2 gameV2 = Core.Game;
             _game = new STC.Game(
                 new GameConfig()
                 {
-                    StartPlayer = gameV2.Player.GoingFirst ? 1 : 2,
+                    StartPlayer = gameV2.Player.HandCount == 3 ? 1 : 2,
                     Player1Name = gameV2.Player.Name,
-                    Player1HeroClass = Converter.getCardClass(gameV2.Player.Class),
+                    Player1HeroClass = Converter.GetCardClass(gameV2.Player.Class),
                     Player1Deck = cardsInDeck,
                     Player2Name = gameV2.Opponent.Name,
-                    Player2HeroClass = Converter.getCardClass(gameV2.Opponent.Class),
+                    Player2HeroClass = Converter.GetCardClass(gameV2.Opponent.Class),
                     Player2Deck = UnknownDeck,
                     FillDecks = false,
                     Shuffle = false,
@@ -206,50 +220,144 @@ namespace HS_AI_PDT_Plugin
             _game.StartGame();
             _game.BeginDraw();
             _game.BeginMulligan();
+            Converter.SyncHands(ref _entityIdMapping, _game.Player1.HandZone, gameV2.Player.Hand);
+
+            _entityIdMapping.Add(gameV2.Player.Board.Where(entity => entity.IsHero).First().Id, _game.Player1.HeroId);
+            _entityIdMapping.Add(gameV2.Opponent.Board.Where(entity => entity.IsHero).First().Id, _game.Player2.HeroId);
         }
 
         private void launchAgent()
         {
             if (_isMulliganDone && _activePlayer == ActivePlayer.Player && _isMulliganDone)
             {
+                _messenger.Reset();
+                _messenger.Add("AI in progress ...");
                 STC.Game STCGame = _game.Clone(false, true, new STC.RandomController());
-                List<PlayerTask> tasks = _agent.PlayTurn(STCGame, STCGame.CurrentPlayer);
+                List<PlayerTask> tasks = _agent.PlayTurn(STCGame, STCGame.Player1);
+                _messenger.Reset();
                 tasks.ForEach(task =>
                 {
                     _messenger.Add(task.FullPrint());
                 });
-                //TODO : execute task on next TurnStart, once randomness is resolved
             }
+        }
+
+        internal void ProcessPlayerAction()
+        {
+            if (_playerAction != null)
+            {
+                _isProcessingTask = true;
+                _randomController.RandomHappened = false;
+                if (_playerAction.ActionType == ActionType.PLAYCARD  && _playerAction.Player == 2)
+                {
+                    STCEntities.IPlayable toBePlayed = STCEntities.Entity.FromCard(_game.Player2, STC.Cards.FromAssetId(_playerAction.Source.Card.DbfIf));
+                    _game.Player2.HandZone.Replace(_game.Player2.HandZone[0], toBePlayed);
+                    _entityIdMapping.Add(_playerAction.Source.Id, toBePlayed.Id);
+                }
+                List<PlayerTask> allOptions = _playerAction.Player == 1 ? _game.Player1.Options(true) : _game.Player2.Options(true);
+                List<PlayerTask> filteredOptions = new List<PlayerTask>();
+                allOptions.ForEach(option =>
+                {
+                    try
+                    {
+                        switch (_playerAction.ActionType)
+                        {
+                            case ActionType.HEROPOWER:
+                                if (option is HeroPowerTask)
+                                    filteredOptions.Add(option);
+                                break;
+                            case ActionType.PLAYCARD:
+                                if (option is PlayCardTask)
+                                    if (option.Source.Id == _entityIdMapping[_playerAction.Source.Id])
+                                        filteredOptions.Add(option);
+                                break;
+                            case ActionType.MINIONATTACK:
+                                if (option is HeroAttackTask || option is MinionAttackTask)
+                                    if (option.Source.Id == _entityIdMapping[_playerAction.AttackInfo.Attacker.Id])
+                                        filteredOptions.Add(option);
+                                break;
+                        }
+
+                    }
+                    catch (Exception e)
+                    {
+                        throw e;
+                    }
+                });
+                
+                if (filteredOptions.Count > 0)
+                {
+                    if (filteredOptions.Count == 1)
+                    {
+                        _game.Process(filteredOptions[0]);
+                        _game.MainCleanUp();
+                    } else
+                    {
+                        STC.Game nextGame = null;
+                        foreach (PlayerTask task in filteredOptions)
+                        {
+                            STC.Game clonedGame = _game.Clone(false, false, _randomController.Clone());
+                            clonedGame.Process(task);
+                            clonedGame.MainCleanUp();
+                            if (Converter.Validate(clonedGame, Core.Game))
+                            {
+                                nextGame = clonedGame;
+                                break;
+                            }
+                        }
+                        _game = nextGame;
+                        _randomController = (RandomController)nextGame.RandomController;
+                    }
+                    Converter.SyncHands(ref _entityIdMapping, _game.Player1.HandZone, Core.Game.Player.Hand);
+                    _randomController.Reset();
+                    if (_randomController.RandomHappened)
+                    {
+                        launchAgent();
+                    }
+                }
+            }
+            _isProcessingTask = false;
+            _randomController.RandomHappened = false;
+            _playerAction = null;
         }
 
         internal void PlayerBeforePlay(Entity entity)
         {
             Console.WriteLine("??????? PlayerBeforePlay " + entity.Card.Name);
+            _playerAction = new PlayerAction(1, ActionType.PLAYCARD, entity, null);
         }
 
         internal void PlayerBeforeHeroPower()
         {
             Console.WriteLine("??????? PlayerBeforeHeroPower ");
+            _playerAction = new PlayerAction(1, ActionType.HEROPOWER, null, null);
         }
 
         internal void PlayerBeforeMinionAttack(AttackInfoWithEntity attackInfo)
         {
             Console.WriteLine("??????? PlayerBeforeMinionAttack " + attackInfo.Attacker.Card.Name + " -> " + attackInfo.Defender.Card.Name);
+            _playerAction = new PlayerAction(1, ActionType.MINIONATTACK, null, attackInfo);
         }
 
         internal void OpponentBeforePlay(Entity entity)
         {
             Console.WriteLine("??????? OpponentBeforePlay " + entity.Card.Name);
+            ProcessPlayerAction();
+            _playerAction = new PlayerAction(2, ActionType.PLAYCARD, entity, null);
         }
 
         internal void OpponentBeforeHeroPower()
         {
             Console.WriteLine("??????? OpponentBeforeHeroPower ");
+            ProcessPlayerAction();
+            _playerAction = new PlayerAction(2, ActionType.HEROPOWER, null, null);
         }
 
         internal void OpponentBeforeMinionAttack(AttackInfoWithEntity attackInfo)
         {
             Console.WriteLine("??????? OpponentBeforeMinionAttack " + attackInfo.Attacker.Card.Name + " -> " + attackInfo.Defender.Card.Name);
+            ProcessPlayerAction();
+            _playerAction = new PlayerAction(2, ActionType.MINIONATTACK, null, attackInfo);
         }
 
         internal void EntityWillTakeDamage(PredamageInfo predamageInfo)
@@ -401,5 +509,28 @@ namespace HS_AI_PDT_Plugin
         {
             Console.WriteLine("??????? OpponentSecretTriggered " + card.Name);
         }
+    }
+
+    internal class PlayerAction
+    {
+        internal int Player;
+        internal ActionType ActionType;
+        internal Entity Source;
+        internal AttackInfoWithEntity AttackInfo;
+
+        internal PlayerAction(int player, ActionType actionType, Entity source, AttackInfoWithEntity attackInfo)
+        {
+            Player = player;
+            ActionType = actionType;
+            Source = source;
+            AttackInfo = attackInfo;
+        }
+    }
+
+    internal enum ActionType
+    {
+        PLAYCARD = 0,
+        HEROPOWER = 1,
+        MINIONATTACK = 2
     }
 }
