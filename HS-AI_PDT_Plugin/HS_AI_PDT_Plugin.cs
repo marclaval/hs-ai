@@ -20,10 +20,10 @@ namespace HS_AI_PDT_Plugin
         public void OnLoad()
         {
             _messenger = new Messenger();
-            Core.OverlayCanvas.Children.Add(_messenger);
             if (Core.Game.IsInMenu)
                 _messenger.Hide();
             _gameEventsHandler = new GameEventsHandler(_messenger);
+            _messenger.SetGameEventsHandler(_gameEventsHandler);
             //when it's loaded upon each restart/turned on by the user
             GameEvents.OnGameStart.Add(_gameEventsHandler.GameStart);
             GameEvents.OnTurnStart.Add(_gameEventsHandler.TurnStart);
@@ -31,8 +31,10 @@ namespace HS_AI_PDT_Plugin
 
             GameEvents.OnEntityWillTakeDamage.Add(_gameEventsHandler.EntityWillTakeDamage);
 
-            GameEvents.OnPlayerDraw.Add(_gameEventsHandler.PlayerDraw);
-            GameEvents.OnPlayerGet.Add(_gameEventsHandler.PlayerGet);
+            //GameEvents.OnPlayerDraw.Add(_gameEventsHandler.PlayerDraw);
+            //GameEvents.OnPlayerGet.Add(_gameEventsHandler.PlayerGet);
+            GameEvents.OnPlayerDrawWithEntity.Add(_gameEventsHandler.PlayerDraw);
+            GameEvents.OnPlayerGetWithEntity.Add(_gameEventsHandler.PlayerGet);
             GameEvents.OnPlayerPlay.Add(_gameEventsHandler.PlayerPlay);
             GameEvents.OnPlayerHandDiscard.Add(_gameEventsHandler.PlayerHandDiscard);
             GameEvents.OnPlayerMulligan.Add(_gameEventsHandler.PlayerMulligan);

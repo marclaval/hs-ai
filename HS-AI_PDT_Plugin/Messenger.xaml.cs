@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using Hearthstone_Deck_Tracker.API;
@@ -8,9 +9,12 @@ namespace HS_AI_PDT_Plugin
     /// <summary>
     /// Interaction logic for Messenger.xaml
     /// </summary>
-    public partial class Messenger : UserControl
+    public partial class Messenger : Window
     {
+        private string _title = "";
         private List<string> _messages;
+        private GameEventsHandler _gameEventsHandler;
+
         public Messenger()
         {
             _messages = new List<string>();
@@ -18,9 +22,9 @@ namespace HS_AI_PDT_Plugin
             Refresh();
         }
 
-        public void Set(List<string> messages)
+        public void SetTitle(string title)
         {
-            _messages = messages;
+            _title = title;
             Refresh();
         }
 
@@ -36,21 +40,21 @@ namespace HS_AI_PDT_Plugin
             Refresh();
         }
 
+        internal void SetGameEventsHandler(GameEventsHandler gameEventsHandler)
+        {
+            _gameEventsHandler = gameEventsHandler;
+        }
+
         private void Refresh()
         {
-            this.msgBinding.ItemsSource = new List<string>(_messages);
-            Canvas.SetBottom(this, 0);
-            Canvas.SetLeft(this, 0);
+            var tmp = new List<string>(_messages);
+            tmp.Insert(0, _title);
+            this.msgBinding.ItemsSource = tmp;
         }
 
-        public void Show()
+        private void ButtonProcess_Click(object sender, RoutedEventArgs e)
         {
-            this.Visibility = Visibility.Visible;
-        }
-
-        public void Hide()
-        {
-            this.Visibility = Visibility.Hidden;
+            _gameEventsHandler.ProcessPlayerAction();
         }
     }
 }
