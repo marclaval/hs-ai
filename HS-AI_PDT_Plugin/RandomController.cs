@@ -54,6 +54,7 @@ namespace HS_AI_PDT_Plugin
                 }
                 catch (Exception e)
                 {
+                    System.Diagnostics.Debugger.Break();
                     throw e;
                 }
                 
@@ -75,6 +76,7 @@ namespace HS_AI_PDT_Plugin
             }
             catch (Exception e)
             {
+                System.Diagnostics.Debugger.Break();
                 throw e;
             }
         }
@@ -90,6 +92,7 @@ namespace HS_AI_PDT_Plugin
             }
             catch (Exception e)
             {
+                System.Diagnostics.Debugger.Break();
                 throw e;
             }
 }

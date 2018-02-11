@@ -40,7 +40,7 @@ namespace HS_AI_PDT_Plugin
             return CardClass.MAGE;
         }
 
-        public static bool AreGamesInSync(Game game, GameV2 gameV2)
+        public static List<string> AreGamesInSync(Game game, GameV2 gameV2)
         {
             List<string> errors = new List<string>();
 
@@ -59,19 +59,21 @@ namespace HS_AI_PDT_Plugin
                 }
 
                 // Player board
-                CheckBoard(ref errors, game.Player1, gameV2.Player.Board.ToList());
+                CheckBoard(ref errors, game.Player1, gameV2.Player.Board.ToList(), game.CurrentPlayer == game.Player1);
                 // Opponent board
-                CheckBoard(ref errors, game.Player2, gameV2.Opponent.Board.ToList());
+                CheckBoard(ref errors, game.Player2, gameV2.Opponent.Board.ToList(), game.CurrentPlayer == game.Player2);
             }
 
-            return errors.Count == 0;
+            return errors;
         }
 
 
-        private static void CheckBoard(ref List<string> errors, Controller player, List<Hearthstone_Deck_Tracker.Hearthstone.Entities.Entity> boardList)
+        private static void CheckBoard(ref List<string> errors, Controller player, List<Hearthstone_Deck_Tracker.Hearthstone.Entities.Entity> boardList, bool isCurrentPlayer)
         {
             string playerName = player.Id == 2 ? "Player" : "Opponent";
-            Assert(ref errors, boardList.Count, 3 + player.BoardZone.Count + player.SecretZone.Count + (player.Hero.Weapon != null ? 1 : 0), playerName + " board size");
+            Assert(ref errors,
+                boardList.Where(e => e.IsHero || e.IsHeroPower || e.IsMinion || e.IsSecret || e.IsWeapon).ToList().Count,
+                2 + player.BoardZone.Count + player.SecretZone.Count + (player.Hero.Weapon != null ? 1 : 0), playerName + " board size");
             if (errors.Count == 0)
             {
                 foreach (var entity in boardList)
@@ -86,7 +88,7 @@ namespace HS_AI_PDT_Plugin
                     {
                         Assert(ref errors, entity.Card.Name, player.Hero.Weapon.Card.Name, playerName + " weapon's name");
                         Assert(ref errors, entity.GetTag(HearthDb.Enums.GameTag.ATK), player.Hero.Weapon.AttackDamage, playerName + " weapon's attack damage");
-                        Assert(ref errors, entity.GetTag(HearthDb.Enums.GameTag.DURABILITY), player.Hero.Weapon.Durability, playerName + " weapon's durability");
+                        Assert(ref errors, entity.GetTag(HearthDb.Enums.GameTag.DURABILITY) - entity.GetTag(HearthDb.Enums.GameTag.DAMAGE), player.Hero.Weapon.Durability, playerName + " weapon's durability");
                     }
                     else if (entity.IsHeroPower)
                     {
@@ -106,7 +108,8 @@ namespace HS_AI_PDT_Plugin
                         Assert(ref errors, entity.GetTag(HearthDb.Enums.GameTag.TAUNT) == 1, minion.HasTaunt, playerName + " minion's taunt at " + position);
                         Assert(ref errors, entity.GetTag(HearthDb.Enums.GameTag.WINDFURY) == 1, minion.HasWindfury, playerName + " minion's windfury at " + position);
                         Assert(ref errors, entity.GetTag(HearthDb.Enums.GameTag.ENRAGED) == 1, minion.IsEnraged, playerName + " minion's enraged at " + position);
-                        Assert(ref errors, entity.GetTag(HearthDb.Enums.GameTag.EXHAUSTED) == 1, minion.IsExhausted, playerName + " minion's exhausted at " + position);
+                        if (isCurrentPlayer)
+                            Assert(ref errors, entity.GetTag(HearthDb.Enums.GameTag.EXHAUSTED) == 1, minion.IsExhausted, playerName + " minion's exhausted at " + position);
                         Assert(ref errors, entity.GetTag(HearthDb.Enums.GameTag.FROZEN) == 1, minion.IsFrozen, playerName + " minion's frozen at " + position);
                         Assert(ref errors, entity.GetTag(HearthDb.Enums.GameTag.IMMUNE) == 1, minion.IsImmune, playerName + " minion's immune at " + position);
                         Assert(ref errors, entity.GetTag(HearthDb.Enums.GameTag.SILENCED) == 1, minion.IsSilenced, playerName + " minion's silenced at " + position);

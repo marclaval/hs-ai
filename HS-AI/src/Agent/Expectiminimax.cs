@@ -99,6 +99,10 @@ namespace HSAI.Agent
 					
 					current = cache.OrderBy(a => Guid.NewGuid()).Take(3000).ToDictionary(p => p.Key, p => p.Value);
 					Console.WriteLine($" Depth {depth}, {cache.Count} nodes, {current.Count} taken");
+                    if (depth == 1 && cache.Count == 0)
+                    {
+                        System.Diagnostics.Debugger.Break();
+                    }
 					cache = null;
 
 				}

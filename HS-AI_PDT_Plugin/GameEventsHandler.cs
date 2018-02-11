@@ -32,7 +32,7 @@ namespace HS_AI_PDT_Plugin
         private STC.Game _game;
         private IAgent _agent;
         private List<int> _toBeKept = new List<int>();
-        private PlayerAction _playerAction = null;
+        private List<PlayerAction> _playerActions = new List<PlayerAction>();
         private Dictionary<int, int> _entityIdMapping;
         private RandomController _randomController;
 
@@ -60,7 +60,7 @@ namespace HS_AI_PDT_Plugin
             _entityIdMapping = new Dictionary<int, int>();
             _randomController = new RandomController(ref _entityIdMapping);
             _toBeKept = new List<int>();
-            _playerAction = null;
+            _playerActions = new List<PlayerAction>();
 
             _messenger.SetTitle("Game starts!");
             //System.Diagnostics.Debugger.Break();
@@ -241,23 +241,23 @@ namespace HS_AI_PDT_Plugin
 
         internal void ProcessPlayerAction()
         {
-            if (_playerAction != null)
+            foreach (var playerAction in _playerActions)
             {
                 _isProcessingTask = true;
                 _randomController.RandomHappened = false;
-                if (_playerAction.ActionType == ActionType.PLAYCARD  && _playerAction.Player == 2)
+                if (playerAction.ActionType == ActionType.PLAYCARD  && playerAction.Player == 2)
                 {
-                    STCEntities.IPlayable toBePlayed = STCEntities.Entity.FromCard(_game.Player2, STC.Cards.FromAssetId(_playerAction.Source.Card.DbfIf));
+                    STCEntities.IPlayable toBePlayed = STCEntities.Entity.FromCard(_game.Player2, STC.Cards.FromAssetId(playerAction.Source.Card.DbfIf));
                     _game.Player2.HandZone.Replace(_game.Player2.HandZone[0], toBePlayed);
-                    _entityIdMapping.Add(_playerAction.Source.Id, toBePlayed.Id);
+                    _entityIdMapping.Add(playerAction.Source.Id, toBePlayed.Id);
                 }
-                List<PlayerTask> allOptions = _playerAction.Player == 1 ? _game.Player1.Options(true) : _game.Player2.Options(true);
+                List<PlayerTask> allOptions = playerAction.Player == 1 ? _game.Player1.Options(true) : _game.Player2.Options(true);
                 List<PlayerTask> filteredOptions = new List<PlayerTask>();
                 allOptions.ForEach(option =>
                 {
                     try
                     {
-                        switch (_playerAction.ActionType)
+                        switch (playerAction.ActionType)
                         {
                             case ActionType.HEROPOWER:
                                 if (option is HeroPowerTask)
@@ -265,15 +265,15 @@ namespace HS_AI_PDT_Plugin
                                 break;
                             case ActionType.PLAYCARD:
                                 if (option is PlayCardTask)
-                                    if (option.Source.Id == _entityIdMapping[_playerAction.Source.Id])
+                                    if (option.Source.Id == _entityIdMapping[playerAction.Source.Id])
                                         filteredOptions.Add(option);
                                 break;
                             case ActionType.MINIONATTACK:
                                 if (option is MinionAttackTask)
-                                    if (option.Source.Id == _entityIdMapping[_playerAction.AttackInfo.Attacker.Id])
+                                    if (option.Source.Id == _entityIdMapping[playerAction.AttackInfo.Attacker.Id])
                                         filteredOptions.Add(option);
                                 if (option is HeroAttackTask)
-                                    if (option.Controller.HeroId == _entityIdMapping[_playerAction.AttackInfo.Attacker.Id])
+                                    if (option.Controller.HeroId == _entityIdMapping[playerAction.AttackInfo.Attacker.Id])
                                         filteredOptions.Add(option);
                                 break;
                         }
@@ -294,70 +294,84 @@ namespace HS_AI_PDT_Plugin
                     } else
                     {
                         STC.Game nextGame = null;
+                        List<List<string>> errorsList = new List<List<string>>();
                         foreach (PlayerTask task in filteredOptions)
                         {
                             STC.Game clonedGame = _game.Clone(false, false, _randomController.Clone());
                             clonedGame.Process(task);
                             clonedGame.MainCleanUp();
-                            if (Converter.AreGamesInSync(clonedGame, Core.Game))
+                            var errors = Converter.AreGamesInSync(clonedGame, Core.Game);
+                            if (errors.Count == 0)
                             {
                                 nextGame = clonedGame;
                                 break;
+                            } else
+                            {
+                                errorsList.Add(errors);
                             }
+                        }
+                        if (nextGame == null)
+                        {
+                            System.Diagnostics.Debugger.Break();
                         }
                         _game = nextGame;
                         _randomController = (RandomController)nextGame.RandomController;
                     }
                     Converter.SyncEntityIds(ref _entityIdMapping, _game, Core.Game);
+                    _game.Step = Step.MAIN_ACTION;
                     _randomController.Reset();
                     if (_randomController.RandomHappened)
                     {
                         launchAgent();
                     }
+                } else
+                {
+                    System.Diagnostics.Debugger.Break();
+                    var foo = playerAction.Player == 1 ? _game.Player1.Options(true) : _game.Player2.Options(true);
                 }
             }
             _isProcessingTask = false;
             _randomController.RandomHappened = false;
-            _playerAction = null;
+            _playerActions = new List<PlayerAction>();
         }
 
         internal void PlayerBeforePlay(Entity entity)
         {
             Console.WriteLine("??????? PlayerBeforePlay " + entity.Card.Name);
-            _playerAction = new PlayerAction(1, ActionType.PLAYCARD, entity, null);
+            _playerActions.Add(new PlayerAction(1, ActionType.PLAYCARD, entity, null));
         }
 
         internal void PlayerBeforeHeroPower()
         {
             Console.WriteLine("??????? PlayerBeforeHeroPower ");
-            _playerAction = new PlayerAction(1, ActionType.HEROPOWER, null, null);
+            _playerActions.Add(new PlayerAction(1, ActionType.HEROPOWER, null, null));
         }
 
         internal void PlayerBeforeMinionAttack(AttackInfoWithEntity attackInfo)
         {
             Console.WriteLine("??????? PlayerBeforeMinionAttack " + attackInfo.Attacker.Card.Name + " -> " + attackInfo.Defender.Card.Name);
-            _playerAction = new PlayerAction(1, ActionType.MINIONATTACK, null, attackInfo);
+            _playerActions.Add(new PlayerAction(1, ActionType.MINIONATTACK, null, attackInfo));
         }
 
         internal void OpponentBeforePlay(Entity entity)
         {
             Console.WriteLine("??????? OpponentBeforePlay " + entity.Card.Name);
             ProcessPlayerAction();
-            _playerAction = new PlayerAction(2, ActionType.PLAYCARD, entity, null);
+            _playerActions.Add(new PlayerAction(2, ActionType.PLAYCARD, entity, null));
         }
 
         internal void OpponentBeforeHeroPower()
         {
             Console.WriteLine("??????? OpponentBeforeHeroPower ");
             ProcessPlayerAction();
-            _playerAction = new PlayerAction(2, ActionType.HEROPOWER, null, null);
+            _playerActions.Add(new PlayerAction(2, ActionType.HEROPOWER, null, null));
         }
 
         internal void OpponentBeforeMinionAttack(AttackInfoWithEntity attackInfo)
         {
             Console.WriteLine("??????? OpponentBeforeMinionAttack " + attackInfo.Attacker.Card.Name + " -> " + attackInfo.Defender.Card.Name);
             ProcessPlayerAction();
-            _playerAction = new PlayerAction(2, ActionType.MINIONATTACK, null, attackInfo);
+            _playerActions.Add(new PlayerAction(2, ActionType.MINIONATTACK, null, attackInfo));
         }
 
         internal void EntityWillTakeDamage(PredamageInfo predamageInfo)
